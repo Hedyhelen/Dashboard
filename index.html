@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Investment Governance — Concept Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e4dfd6; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px; font-family: 'Source Sans 3', sans-serif; }
+
+  :root {
+    --cream: #f0ece4; --cream2: #e8e3d9; --cream3: #ddd8cd;
+    --ink: #0f0f0d; --ink3: #3a3a36;
+    --copper: #b8894a; --copper-light: #d4a85a; --copper-pale: #f5edd8; --copper-border: rgba(184,137,74,0.3);
+    --border: rgba(15,15,13,0.14); --border2: rgba(15,15,13,0.22);
+    --rg: #16a34a; --ra: #d97706; --rr: #dc2626;
+    --rg-bg: #dcfce7; --ra-bg: #fef3c7; --rr-bg: #fee2e2;
+    --sg: #15803d; --sa: #b45309; --sr: #b91c1c;
+  }
+
+  #pig {
+    background: var(--cream); color: var(--ink);
+    border-radius: 12px; overflow: hidden;
+    width: 100%; max-width: 900px;
+    box-shadow: 0 4px 32px rgba(15,15,13,0.18);
+  }
+
+  .pig-header { background: var(--ink); color: #f0ece4; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .pig-header-title { font-size: 14px; font-weight: 600; color: #f0ece4; letter-spacing: 0.02em; }
+  .pig-header-sub { font-size: 11px; color: rgba(240,236,228,0.5); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 3px; }
+  .pig-header-right { display: flex; align-items: center; gap: 14px; }
+  .pig-badge { font-size: 10px; letter-spacing: 0.08em; color: var(--copper-light); border: 1px solid rgba(212,168,90,0.4); padding: 3px 8px; border-radius: 2px; }
+  .pig-quarter { font-size: 11px; color: rgba(240,236,228,0.5); }
+
+  .pig-nav { background: var(--cream2); border-bottom: 1px solid var(--border2); display: flex; padding: 0 28px; overflow-x: auto; }
+  .pig-tab { padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--ink3); cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.02em; transition: color 0.15s; white-space: nowrap; user-select: none; }
+  .pig-tab:hover { color: var(--ink); }
+  .pig-tab.active { color: var(--copper); border-bottom-color: var(--copper); }
+
+  .pig-body { padding: 22px 28px; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
+  @media (max-width: 600px) { .kpi-row { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; border-top: 3px solid var(--kpi-accent, var(--copper)); }
+  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink3); margin-bottom: 8px; font-weight: 600; }
+  .kpi-value { font-family: 'EB Garamond', Georgia, serif; font-size: 28px; font-weight: 400; color: var(--ink); line-height: 1; }
+  .kpi-value sub { font-size: 13px; font-family: 'Source Sans 3', sans-serif; font-weight: 400; color: var(--ink3); margin-left: 2px; }
+  .kpi-delta { font-size: 11px; margin-top: 6px; font-weight: 500; }
+  .up { color: var(--sg); } .dn { color: var(--sr); } .fl { color: var(--ink3); }
+
+  .grid2 { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .panel { background: #fff; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
+  .panel-head { padding: 11px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--cream2); }
+  .panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); font-weight: 700; }
+  .panel-body { padding: 16px; }
+  .panel-body-flush { padding: 0 16px; }
+
+  .ptable { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .ptable th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink); font-weight: 700; padding: 0 8px 10px 0; border-bottom: 1px solid var(--border2); }
+  .ptable td { padding: 8px 8px 8px 0; border-bottom: 1px solid var(--border); color: var(--ink); vertical-align: middle; }
+  .ptable tr:last-child td { border-bottom: none; }
+
+  .rdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+  .rg { background: var(--rg); } .ra { background: var(--ra); } .rr { background: var(--rr); }
+
+  .tag { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 2px; white-space: nowrap; font-weight: 600; }
+  .tg { background: var(--rg-bg); color: var(--sg); border: 1px solid rgba(22,163,74,0.3); }
+  .ta { background: var(--ra-bg); color: var(--sa); border: 1px solid rgba(217,119,6,0.3); }
+  .tr { background: var(--rr-bg); color: var(--sr); border: 1px solid rgba(220,38,38,0.3); }
+  .tc { background: var(--copper-pale); color: #7a5a28; border: 1px solid var(--copper-border); }
+  .tn { background: var(--cream2); color: var(--ink); border: 1px solid var(--border2); }
+
+  .ai-panel { background: #fff; border: 1px solid var(--copper-border); border-top: 3px solid var(--copper); border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
+  .ai-head { background: var(--copper-pale); padding: 12px 16px; border-bottom: 1px solid var(--copper-border); display: flex; align-items: center; gap: 10px; }
+  .ai-icon { width: 26px; height: 26px; background: var(--copper); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .ai-head-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--copper); }
+  .ai-head-sub { font-size: 10px; color: var(--ink3); margin-left: auto; }
+  .ai-body { padding: 14px 16px; }
+  .ai-triggers { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ai-btn { font-size: 11px; font-weight: 600; background: var(--cream); border: 1px solid var(--border2); color: var(--ink); padding: 7px 13px; border-radius: 3px; cursor: pointer; transition: all 0.15s; font-family: 'Source Sans 3', sans-serif; }
+  .ai-btn:hover { border-color: var(--copper); color: var(--copper); background: var(--copper-pale); }
+  .ai-btn.active { border-color: var(--copper); color: var(--copper); background: var(--copper-pale); }
+  .ai-out { background: var(--cream); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; font-size: 12px; line-height: 1.8; color: var(--ink); min-height: 80px; font-style: italic; }
+  .ai-out.live { font-style: normal; }
+  .ai-out strong { color: var(--ink); font-weight: 700; }
+  .ai-out .hi { color: var(--copper); font-weight: 600; }
+  .ai-cursor { display: inline-block; width: 6px; height: 13px; background: var(--copper); animation: cur 0.85s step-end infinite; margin-left: 2px; vertical-align: middle; border-radius: 1px; }
+  @keyframes cur { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-lbl { font-size: 11px; color: var(--ink); flex-shrink: 0; font-weight: 500; white-space: nowrap; min-width: 180px; }
+  .bar-track { flex: 1; height: 5px; background: var(--cream2); border-radius: 1px; }
+  .bar-fill { height: 100%; border-radius: 1px; }
+  .bar-pct { font-size: 11px; color: var(--ink); width: 34px; text-align: right; flex-shrink: 0; font-weight: 600; }
+
+  .tax-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .tax-row:last-child { border-bottom: none; }
+  .tax-name { color: var(--ink); font-weight: 500; }
+  .tax-right { display: flex; align-items: center; gap: 8px; }
+  .tax-pct { font-size: 11px; color: var(--ink); width: 32px; text-align: right; font-weight: 600; }
+
+  .cap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cap-card { background: var(--cream); border: 1px solid var(--border); border-radius: 4px; padding: 12px; }
+  .cap-domain { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink); margin-bottom: 8px; font-weight: 700; }
+  .cap-nums { display: flex; gap: 14px; }
+  .cap-n { text-align: center; }
+  .cap-nv { font-family: 'EB Garamond', Georgia, serif; font-size: 20px; color: var(--ink); }
+  .cap-nl { font-size: 10px; color: var(--ink3); margin-top: 2px; font-weight: 600; }
+  .cap-bar { margin-top: 8px; height: 3px; background: var(--cream3); border-radius: 1px; overflow: hidden; }
+  .cap-bar-fill { height: 100%; border-radius: 1px; }
+
+  .lgnd { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 10px; font-size: 11px; font-weight: 600; color: var(--ink); }
+  .lgnd-sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .sec { display: none; } .sec.on { display: block; }
+  .psel { background: #fff; border: 1px solid var(--border2); color: var(--ink); font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-family: 'Source Sans 3', sans-serif; }
+
+  .footer-note { text-align: center; font-size: 11px; color: rgba(15,15,13,0.35); padding: 16px 0 4px; font-style: italic; }
+</style>
+</head>
+<body>
+<div id="pig">
+
+  <div class="pig-header">
+    <div>
+      <div class="pig-header-title">Portfolio Investment Governance</div>
+      <div class="pig-header-sub">Finance &amp; Business Management · GT Technology</div>
+    </div>
+    <div class="pig-header-right">
+      <div class="pig-badge">CONCEPT DEMO · ILLUSTRATIVE</div>
+      <div class="pig-quarter">Q2 2026 · Wk 4</div>
+    </div>
+  </div>
+
+  <div class="pig-nav">
+    <div class="pig-tab active" onclick="showTab('portfolio',this)">Portfolio overview</div>
+    <div class="pig-tab" onclick="showTab('capacity',this)">Capacity management</div>
+    <div class="pig-tab" onclick="showTab('financial',this)">Financial management</div>
+    <div class="pig-tab" onclick="showTab('taxonomy',this)">Taxonomy &amp; data</div>
+  </div>
+
+  <div class="pig-body">
+
+    <!-- AI PANEL -->
+    <div class="ai-panel">
+      <div class="ai-head">
+        <div class="ai-icon">AI</div>
+        <div class="ai-head-title">AI Investment Governance Adviser</div>
+        <div class="ai-head-sub">Context-aware · GT Portfolio Intelligence</div>
+      </div>
+      <div class="ai-body">
+        <div class="ai-triggers">
+          <button class="ai-btn" onclick="typeResponse('portfolio_risk',this)">Analyse portfolio risk</button>
+          <button class="ai-btn" onclick="typeResponse('capacity_alert',this)">Flag capacity blockers</button>
+          <button class="ai-btn" onclick="typeResponse('spend_variance',this)">Explain spend variance</button>
+          <button class="ai-btn" onclick="typeResponse('taxonomy_gaps',this)">Identify taxonomy gaps</button>
+          <button class="ai-btn" onclick="typeResponse('exec_summary',this)">Draft exec summary</button>
+        </div>
+        <div class="ai-out" id="ai-out">Select a prompt above to activate the AI Governance Adviser. Responses are generated using live portfolio context.</div>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO TAB -->
+    <div id="tab-portfolio" class="sec on">
+      <div class="kpi-row">
+        <div class="kpi" style="--kpi-accent:var(--copper)"><div class="kpi-label">Active investments</div><div class="kpi-value">42<sub>programmes</sub></div><div class="kpi-delta fl">+6 vs prior quarter</div></div>
+        <div class="kpi" style="--kpi-accent:var(--rg)"><div class="kpi-label">On-track delivery</div><div class="kpi-value">71<sub>%</sub></div><div class="kpi-delta up">+4pp vs Q1</div></div>
+        <div class="kpi" style="--kpi-accent:var(--ink)"><div class="kpi-label">Total portfolio spend</div><div class="kpi-value">$2.4<sub>bn</sub></div><div class="kpi-delta fl">Within approved envelope</div></div>
+        <div class="kpi" style="--kpi-accent:var(--rr)"><div class="kpi-label">Escalated risk items</div><div class="kpi-value">9<sub>open</sub></div><div class="kpi-delta dn">3 new this week</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Delivery health by domain</div></div>
+        <div class="panel-body">
+          <div class="lgnd">
+            <span style="display:flex;align-items:center;gap:5px;"><span class="lgnd-sw" style="background:#16a34a"></span>On track</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span class="lgnd-sw" style="background:#d97706"></span>At risk</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span class="lgnd-sw" style="background:#dc2626"></span>Off track</span>
+          </div>
+          <div style="position:relative;height:180px;">
+            <canvas id="ragChart" role="img" aria-label="Horizontal stacked bar chart showing RAG delivery status by domain">IB: 8 on-track, 2 at-risk, 1 off-track. Risk: 5 on-track, 3 at-risk, 1 off-track. Ops: 7 on-track, 1 at-risk. Data: 4 on-track, 2 at-risk, 1 off-track.</canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Investment portfolio status</div>
+          <select class="psel" onchange="filterPortfolio(this.value)">
+            <option value="all">All domains</option>
+            <option value="ib">Investment Banking</option>
+            <option value="risk">Risk &amp; Compliance</option>
+            <option value="ops">Operations</option>
+            <option value="data">Data &amp; AI</option>
+          </select>
+        </div>
+        <div class="panel-body-flush">
+          <table class="ptable">
+            <thead><tr><th style="width:20px"></th><th>Programme</th><th style="width:80px">Domain</th><th style="width:58px">Budget</th><th style="width:70px">Stage</th></tr></thead>
+            <tbody id="ptbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Dependency &amp; blocker registry</div>
+          <div class="tag ta">4 active blockers</div>
+        </div>
+        <div class="panel-body-flush">
+          <table class="ptable">
+            <thead><tr><th style="width:44px">ID</th><th>Blocker</th><th style="width:66px">Impact</th><th style="width:90px">Owner</th><th style="width:52px">Due</th><th style="width:20px"></th></tr></thead>
+            <tbody>
+              <tr><td style="font-size:10px;color:var(--ink3);font-weight:600;">B-017</td><td>Data lake access — AM domain</td><td><span class="tag tr">Critical</span></td><td style="font-size:11px;font-weight:500;">AM CTO</td><td style="font-size:11px;font-weight:500;">Apr 29</td><td><span class="rdot rr"></span></td></tr>
+              <tr><td style="font-size:10px;color:var(--ink3);font-weight:600;">B-021</td><td>API Gateway schema sign-off</td><td><span class="tag ta">High</span></td><td style="font-size:11px;font-weight:500;">Arch Board</td><td style="font-size:11px;font-weight:500;">May 5</td><td><span class="rdot ra"></span></td></tr>
+              <tr><td style="font-size:10px;color:var(--ink3);font-weight:600;">B-024</td><td>Risk Engine SLA outstanding</td><td><span class="tag ta">High</span></td><td style="font-size:11px;font-weight:500;">Risk Tech</td><td style="font-size:11px;font-weight:500;">May 12</td><td><span class="rdot ra"></span></td></tr>
+              <tr><td style="font-size:10px;color:var(--ink3);font-weight:600;">B-029</td><td>UAT environment vendor access</td><td><span class="tag tn">Medium</span></td><td style="font-size:11px;font-weight:500;">Procurement</td><td style="font-size:11px;font-weight:500;">May 15</td><td><span class="rdot ra"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAPACITY TAB -->
+    <div id="tab-capacity" class="sec">
+      <div class="kpi-row">
+        <div class="kpi" style="--kpi-accent:var(--copper)"><div class="kpi-label">Total FTE capacity</div><div class="kpi-value">1,240<sub>FTE</sub></div><div class="kpi-delta fl">Across 8 domains</div></div>
+        <div class="kpi" style="--kpi-accent:var(--ra)"><div class="kpi-label">Utilisation rate</div><div class="kpi-value">87<sub>%</sub></div><div class="kpi-delta dn">Target 82% · Over-utilised</div></div>
+        <div class="kpi" style="--kpi-accent:var(--rr)"><div class="kpi-label">Demand gap</div><div class="kpi-value">68<sub>FTE</sub></div><div class="kpi-delta dn">Unresourced demand</div></div>
+        <div class="kpi" style="--kpi-accent:var(--rg)"><div class="kpi-label">Reallocation proposals</div><div class="kpi-value">5<sub>pending</sub></div><div class="kpi-delta fl">Awaiting MD sign-off</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Resource utilisation</div></div>
+        <div class="panel-body">
+          <div style="position:relative;height:220px;">
+            <canvas id="capChart" role="img" aria-label="Horizontal bar chart showing resource utilisation by domain">Data Engineering 97%, Risk Tech 91%, IB Technology 88%, AM Platform 84%, CIB Operations 79%, Retail Banking 75%.</canvas>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Capacity vs demand by domain</div></div>
+        <div class="panel-body"><div class="cap-grid" id="capgrid"></div></div>
+      </div>
+    </div>
+
+    <!-- FINANCIAL TAB -->
+    <div id="tab-financial" class="sec">
+      <div class="kpi-row">
+        <div class="kpi" style="--kpi-accent:var(--copper)"><div class="kpi-label">Approved budget</div><div class="kpi-value">$2.7<sub>bn</sub></div><div class="kpi-delta fl">FY 2026 envelope</div></div>
+        <div class="kpi" style="--kpi-accent:var(--ink)"><div class="kpi-label">Actuals YTD</div><div class="kpi-value">$1.1<sub>bn</sub></div><div class="kpi-delta fl">41% of annual budget</div></div>
+        <div class="kpi" style="--kpi-accent:var(--ra)"><div class="kpi-label">Forecast variance</div><div class="kpi-value">+$84<sub>m</sub></div><div class="kpi-delta dn">Over forecast · Review needed</div></div>
+        <div class="kpi" style="--kpi-accent:var(--rg)"><div class="kpi-label">Realisation rate</div><div class="kpi-value">78<sub>%</sub></div><div class="kpi-delta up">+3pp vs prior quarter</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Budget vs actuals vs forecast — Q1–Q4 2026</div></div>
+        <div class="panel-body">
+          <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;font-size:11px;font-weight:600;color:var(--ink);">
+            <span style="display:flex;align-items:center;gap:6px;"><span style="width:20px;border-top:2px dashed #0f0f0d;display:inline-block;"></span>Budget</span>
+            <span style="display:flex;align-items:center;gap:6px;"><span style="width:20px;border-top:2px solid #b8894a;display:inline-block;"></span>Actuals / Forecast</span>
+          </div>
+          <div style="position:relative;height:220px;"><canvas id="finChart" role="img" aria-label="Line chart showing budget actuals and forecast by quarter">Budget flat $675m. Actuals: Q1 $590m, Q2 $520m. Forecast: Q3 $610m, Q4 $640m.</canvas></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Spend by investment category</div></div>
+        <div class="panel-body" id="spendcont"></div>
+      </div>
+    </div>
+
+    <!-- TAXONOMY TAB -->
+    <div id="tab-taxonomy" class="sec">
+      <div class="kpi-row">
+        <div class="kpi" style="--kpi-accent:var(--rg)"><div class="kpi-label">Taxonomy coverage</div><div class="kpi-value">76<sub>%</sub></div><div class="kpi-delta up">Target 95% by Q3</div></div>
+        <div class="kpi" style="--kpi-accent:var(--copper)"><div class="kpi-label">Data quality score</div><div class="kpi-value">81<sub>%</sub></div><div class="kpi-delta up">+5pp vs prior month</div></div>
+        <div class="kpi" style="--kpi-accent:var(--rr)"><div class="kpi-label">Classification gaps</div><div class="kpi-value">14<sub>fields</sub></div><div class="kpi-delta dn">Across 3 domains</div></div>
+        <div class="kpi" style="--kpi-accent:var(--ra)"><div class="kpi-label">Pending data owners</div><div class="kpi-value">7<sub>datasets</sub></div><div class="kpi-delta fl">Assignment outstanding</div></div>
+      </div>
+      <div class="grid2">
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-head"><div class="panel-title">GT taxonomy coverage by dimension</div></div>
+          <div class="panel-body" id="taxcont"></div>
+        </div>
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-head"><div class="panel-title">Data quality by domain</div></div>
+          <div class="panel-body">
+            <div style="position:relative;height:220px;"><canvas id="dqChart" role="img" aria-label="Radar chart showing data quality scores">Completeness 85%, Accuracy 79%, Consistency 74%, Timeliness 88%, Lineage 62%, Ownership 71%.</canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">Concept demo · All data and programme names are illustrative only · Prepared by Haiqing (Heidi) Liu</div>
+
+  </div>
+</div>
+
+<script>
+const RESPONSES = {
+  portfolio_risk: `<strong>Portfolio risk assessment — Q2 2026, Week 4</strong><br><br>The GT technology portfolio is tracking at <span class="hi">71% on-track delivery</span>, a 4pp improvement quarter-on-quarter, but the concentration of <span class="hi">9 escalated risk items</span> — 3 of which surfaced this week — warrants immediate senior attention. The most material risk is the <span class="hi">AM AI Ops Platform</span>, which remains fully blocked pending data lake access provisioning; without resolution by 29 April, downstream milestone dependencies across 3 related programmes will slip into Q3. The secondary risk is portfolio-wide resource over-utilisation at 87% against an 82% target, which is compressing delivery capacity and limiting the team's ability to absorb further scope changes.<br><br><strong>Recommended immediate action:</strong> Escalate the AM data lake access blocker to AM CTO and CDAO leadership jointly, with a 48-hour resolution deadline, and convene a dependency review for all programmes linked to B-017.`,
+
+  capacity_alert: `<strong>Capacity alert — GT Technology, Q2 2026</strong><br><br>Firmwide resource utilisation stands at <span class="hi">87% against a target ceiling of 82%</span>, with 68 FTE of unresourced demand outstanding across 8 domains. The most critical bottleneck is <span class="hi">Data Engineering</span>, operating at 97% utilisation with demand exceeding capacity by 40 FTE; this domain supports 6 active programmes and any further constraint will generate cascading delivery risk. Risk Technology (91%) and IB Technology (88%) are the next pressure points, both carrying demand that exceeds sustainable throughput.<br><br><strong>Recommended reallocation:</strong> Of the 5 pending MD sign-off proposals, prioritise the reallocation of 15 FTE from CIB Operations (79% utilised, demand below capacity) to Data Engineering as an interim measure, pending the Q3 hiring plan. Proposals should be tabled at the next GT Leadership forum no later than 2 May.`,
+
+  spend_variance: `<strong>Spend variance analysis — FY 2026 YTD</strong><br><br>Actuals of <span class="hi">$1.1bn represent 41% of the $2.7bn approved envelope</span>, tracking broadly in line with a linear spend profile at this point in the year. However, the <span class="hi">+$84m over-forecast variance</span> against the Q2 submission requires explanation: the primary driver is accelerated vendor onboarding on the Core Banking Modernisation programme ($210m), where contract commitments were drawn earlier than planned to secure delivery timelines ahead of a regulatory checkpoint. This is not a structural overspend — it reflects timing, not scope growth — but it will compress Q3 headroom if demand from the AM and Risk programmes escalates as expected.<br><br><strong>Recommended governance action:</strong> Request an updated Q3 forecast from each programme lead by 9 May, with explicit identification of any scope changes, and rebaseline the H2 forecast before the next Finance &amp; Business Management review.`,
+
+  taxonomy_gaps: `<strong>Taxonomy gap analysis — GT Investment Data, Q2 2026</strong><br><br>Overall taxonomy coverage of <span class="hi">76% against a 95% Q3 target</span> leaves a 19pp gap to close in under 6 weeks, representing a material risk to data-driven investment decision-making across GT. The two highest-priority gaps are <span class="hi">Delivery method tags (48% coverage)</span>, which are preventing consistent reporting of Agile vs Waterfall spend allocation across the portfolio, and <span class="hi">Benefit realisation IDs (41% coverage)</span>, which are blocking the linkage between technology spend and measurable business outcomes — the core purpose of the governance framework.<br><br><strong>Recommended remediation:</strong> Assign a dedicated data steward to each gap with a 3-week sprint mandate; prioritise Delivery method tagging first as it unblocks downstream Financial Management reporting, then Benefit realisation ID as it underpins the Q3 ExCo investment review narrative.`,
+
+  exec_summary: `<strong>GT Technology Investment Review — ExCo Summary, Q2 2026 Week 4</strong><br><br>The GT technology portfolio of 42 active programmes is delivering at 71% on-track — a 4pp improvement on Q1 — against a total approved spend envelope of $2.4bn, with YTD actuals broadly on profile at $1.1bn; however, a <span class="hi">+$84m forecast variance</span> driven by accelerated Core Banking commitments requires rebaselining ahead of H2. Portfolio risk is elevated by <span class="hi">9 open escalations</span>, most critically the AM AI Ops Platform which is fully blocked pending data lake access and is at risk of cascading into 3 dependent programmes if unresolved by 29 April. Capacity headroom is constrained firmwide at 87% utilisation against an 82% target, with Data Engineering at 97% representing the most acute bottleneck, and 5 reallocation proposals currently pending MD sign-off. Data and taxonomy foundations require urgent remediation — overall GT taxonomy coverage stands at 76% against a 95% Q3 target, with Benefit Realisation IDs at only 41% coverage, directly limiting the portfolio's ability to demonstrate investment value to the board.`
+};
+
+let typeTimer = null;
+function typeResponse(key, btn) {
+  document.querySelectorAll('.ai-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const out = document.getElementById('ai-out');
+  out.className = 'ai-out live';
+  out.innerHTML = '';
+  if (typeTimer) clearInterval(typeTimer);
+  const html = RESPONSES[key];
+  let i = 0;
+  typeTimer = setInterval(() => {
+    i += Math.floor(Math.random() * 5) + 2;
+    if (i >= html.length) { i = html.length; clearInterval(typeTimer); out.innerHTML = html; return; }
+    out.innerHTML = html.slice(0, i) + '<span class="ai-cursor"></span>';
+  }, 16);
+}
+
+const portfolioRows = [
+  {rag:'g',name:'GenAI Client Intelligence Platform',domain:'IB',tag:'ib',budget:'$120m',stage:'Execution',sc:'tn'},
+  {rag:'g',name:'Enterprise Data Lineage v2',domain:'Data & AI',tag:'data',budget:'$48m',stage:'Execution',sc:'tn'},
+  {rag:'a',name:'ML Model Risk Framework',domain:'Risk',tag:'risk',budget:'$35m',stage:'Discovery',sc:'tc'},
+  {rag:'g',name:'Core Banking Modernisation',domain:'Operations',tag:'ops',budget:'$210m',stage:'Delivery',sc:'tn'},
+  {rag:'a',name:'Capacity Planning Platform',domain:'Data & AI',tag:'data',budget:'$22m',stage:'Alpha',sc:'tc'},
+  {rag:'r',name:'AM AI Ops Platform',domain:'IB',tag:'ib',budget:'$65m',stage:'Blocked',sc:'tr'},
+  {rag:'g',name:'RegTech Reporting Suite',domain:'Risk',tag:'risk',budget:'$41m',stage:'UAT',sc:'tg'},
+  {rag:'g',name:'Payments Infrastructure Uplift',domain:'Operations',tag:'ops',budget:'$180m',stage:'Delivery',sc:'tn'},
+];
+function renderPortfolio(f) {
+  const rows = f === 'all' ? portfolioRows : portfolioRows.filter(d => d.tag === f);
+  document.getElementById('ptbody').innerHTML = rows.map(d => `<tr>
+    <td><span class="rdot r${d.rag}"></span></td>
+    <td style="font-size:12px;font-weight:500;white-space:normal;">${d.name}</td>
+    <td><span class="tag tn" style="font-size:10px">${d.domain}</span></td>
+    <td style="font-size:11px;font-weight:600;">${d.budget}</td>
+    <td><span class="tag ${d.sc}" style="font-size:10px">${d.stage}</span></td>
+  </tr>`).join('');
+}
+renderPortfolio('all');
+function filterPortfolio(v) { renderPortfolio(v); }
+
+function showTab(id, el) {
+  document.querySelectorAll('.sec').forEach(s => s.className = 'sec');
+  document.getElementById('tab-' + id).className = 'sec on';
+  document.querySelectorAll('.pig-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+const capData = [
+  {domain:'Data Engineering',cap:280,demand:320,util:97},
+  {domain:'Risk Technology',cap:190,demand:210,util:91},
+  {domain:'IB Technology',cap:240,demand:258,util:88},
+  {domain:'AM Platform',cap:160,demand:162,util:84},
+  {domain:'CIB Operations',cap:210,demand:192,util:79},
+  {domain:'Retail Banking',cap:160,demand:138,util:75},
+];
+capData.forEach(d => {
+  const col = d.util > 90 ? '#dc2626' : d.util > 85 ? '#d97706' : '#16a34a';
+  document.getElementById('capgrid').innerHTML += `<div class="cap-card">
+    <div class="cap-domain">${d.domain}</div>
+    <div class="cap-nums">
+      <div class="cap-n"><div class="cap-nv">${d.cap}</div><div class="cap-nl">Capacity</div></div>
+      <div class="cap-n"><div class="cap-nv" style="color:${d.demand>d.cap?'#dc2626':'#16a34a'}">${d.demand}</div><div class="cap-nl">Demand</div></div>
+      <div class="cap-n"><div class="cap-nv" style="color:${col}">${d.util}%</div><div class="cap-nl">Util.</div></div>
+    </div>
+    <div class="cap-bar"><div class="cap-bar-fill" style="width:${Math.min(d.util,100)}%;background:${col}"></div></div>
+  </div>`;
+});
+
+[
+  {label:'Run-the-Bank operations',pct:38,col:'#b8894a'},
+  {label:'Change-the-Bank delivery',pct:29,col:'#0f0f0d'},
+  {label:'AI & Data platforms',pct:17,col:'#16a34a'},
+  {label:'Regulatory & Controls',pct:11,col:'#d97706'},
+  {label:'Innovation & Research',pct:5,col:'#6b7280'},
+].forEach(d => {
+  document.getElementById('spendcont').innerHTML += `<div class="bar-row"><div class="bar-lbl">${d.label}</div><div class="bar-track"><div class="bar-fill" style="width:${d.pct}%;background:${d.col}"></div></div><div class="bar-pct">${d.pct}%</div></div>`;
+});
+
+[
+  {name:'Application taxonomy',cov:92,s:'g'},{name:'Cost centre mapping',cov:88,s:'g'},
+  {name:'Technology domain',cov:81,s:'g'},{name:'Investment category',cov:74,s:'a'},
+  {name:'Product line alignment',cov:63,s:'a'},{name:'Delivery method tags',cov:48,s:'r'},
+  {name:'Benefit realisation ID',cov:41,s:'r'},
+].forEach(d => {
+  const col = d.s==='g'?'#16a34a':d.s==='a'?'#d97706':'#dc2626';
+  document.getElementById('taxcont').innerHTML += `<div class="tax-row"><div class="tax-name">${d.name}</div><div class="tax-right"><div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${d.cov}%;background:${col}"></div></div><div class="tax-pct">${d.cov}%</div><span class="rdot r${d.s}"></span></div></div>`;
+});
+
+const ax = {grid:{color:'rgba(15,15,13,0.07)'},ticks:{color:'#0f0f0d',font:{size:10},weight:'600'}};
+
+new Chart(document.getElementById('ragChart'), {
+  type:'bar',
+  data:{labels:['Investment Banking','Risk & Compliance','Operations','Data & AI'],datasets:[
+    {label:'On track',data:[8,5,7,4],backgroundColor:'rgba(22,163,74,0.85)',barThickness:14,borderRadius:2},
+    {label:'At risk',data:[2,3,1,2],backgroundColor:'rgba(217,119,6,0.85)',barThickness:14,borderRadius:2},
+    {label:'Off track',data:[1,1,0,1],backgroundColor:'rgba(220,38,38,0.85)',barThickness:14,borderRadius:2},
+  ]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{stacked:true,...ax,ticks:{...ax.ticks,callback:v=>Number.isInteger(v)?v:''}},y:{stacked:true,grid:{display:false},ticks:{color:'#0f0f0d',font:{size:11},weight:'600'}}}}
+});
+
+new Chart(document.getElementById('capChart'), {
+  type:'bar',
+  data:{labels:capData.map(d=>d.domain),datasets:[{label:'Utilisation %',data:capData.map(d=>d.util),backgroundColor:capData.map(d=>d.util>90?'rgba(220,38,38,0.8)':d.util>85?'rgba(217,119,6,0.8)':'rgba(22,163,74,0.8)'),barThickness:14,borderRadius:2}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{min:60,max:105,...ax,ticks:{...ax.ticks,callback:v=>v+'%'}},y:{grid:{display:false},ticks:{color:'#0f0f0d',font:{size:11},weight:'600'}}}}
+});
+
+new Chart(document.getElementById('finChart'), {
+  type:'line',
+  data:{labels:['Q1 actual','Q2 actual','Q3 forecast','Q4 forecast'],datasets:[
+    {label:'Budget',data:[675,675,675,675],borderColor:'#0f0f0d',borderDash:[5,4],borderWidth:1.5,pointRadius:0,tension:0},
+    {label:'Actuals / Forecast',data:[590,520,610,640],borderColor:'#b8894a',borderWidth:2,pointBackgroundColor:'#b8894a',pointRadius:4,tension:0.3},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{...ax},y:{...ax,ticks:{...ax.ticks,callback:v=>'$'+v+'m'}}}}
+});
+
+new Chart(document.getElementById('dqChart'), {
+  type:'radar',
+  data:{labels:['Completeness','Accuracy','Consistency','Timeliness','Lineage','Ownership'],datasets:[
+    {label:'Current',data:[85,79,74,88,62,71],borderColor:'#b8894a',backgroundColor:'rgba(184,137,74,0.12)',borderWidth:1.5,pointRadius:3,pointBackgroundColor:'#b8894a'},
+    {label:'Target',data:[95,95,95,95,90,95],borderColor:'rgba(15,15,13,0.2)',backgroundColor:'transparent',borderDash:[3,3],borderWidth:1,pointRadius:0},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{r:{grid:{color:'rgba(15,15,13,0.1)'},angleLines:{color:'rgba(15,15,13,0.08)'},pointLabels:{color:'#0f0f0d',font:{size:10,weight:'600'}},ticks:{color:'#0f0f0d',font:{size:9},backdropColor:'transparent',stepSize:20},min:0,max:100}}}
+});
+</script>
+</body>
+</html>
